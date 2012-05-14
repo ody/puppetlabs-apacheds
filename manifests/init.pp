@@ -79,7 +79,7 @@ class apacheds(
     command => "echo '${rootpw_ldif}' | ldapmodify -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w secret",
     onlyif  => "ldapsearch -ZZ -D uid=admin,ou=system -LLL -H ldap://${server}:${port} -x -w secret -b ou=system ou=system",
     path    => [ '/bin', '/usr/bin' ],
-    require => Package['apacheds'],
+    require => Service['apacheds-1.5.7-default'],
   }
 
   # Turn on specific schemas
