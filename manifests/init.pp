@@ -66,18 +66,20 @@ class apacheds(
   service { 'apacheds-1.5.7-default':
     ensure     => running,
     enable     => true,
-    hasrestart => true,
+    restart    => '/etc/init.d/apacheds-1.5.7-default restart && sleep 5',
     require    => Package['apacheds'],
   }
 
   $rootpw_ldif = template("${module_name}/rootpw_ldif.erb")
   $schema_ldif = template("${module_name}/schemas_ldif.erb")
   $pl_context_ldif = template("${module_name}/pl_context_ldif.erb")
+  $ou_ldif = template("${module_name}/ou_ldif.erb")
+  $entries_ldif = template("${module_name}/entries_ldif.erb")
 
   # Now to change the default password.
   exec { 'update password':
     command => "echo '${rootpw_ldif}' | ldapmodify -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w secret && sleep 5",
-    onlyif  => "sleep 5 && ldapsearch -ZZ -D uid=admin,ou=system -LLL -H ldap://${server}:${port} -x -w secret -b ou=system ou=system",
+    onlyif  => "ldapsearch -ZZ -D uid=admin,ou=system -LLL -H ldap://${server}:${port} -x -w secret -b ou=system ou=system",
     path    => [ '/bin', '/usr/bin' ],
     require => Service['apacheds-1.5.7-default'],
   }
@@ -95,5 +97,19 @@ class apacheds(
     unless  => "ldapsearch -ZZ -D uid=admin,ou=system -LLL -H ldap://${server}:${port} -x -w ${rootpw} -b dc=puppetlabs,dc=net dc=puppetlabs,dc=net",
     path    => [ '/bin', '/usr/bin' ],
     require => Exec['update password'],
+  }
+
+  exec { 'add ou':
+    command => "echo '${ou_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
+    unless  => "test `ldapsearch -D uid=admin,ou=system -ZZ -H ldap://${server}:${port} -w ${rootpw} -x -b dc=puppetlabs,dc=net -LLL '(|(ou=people)(ou=group)(ou=autofs))' ou | grep ou: | wc -l` == 3",
+    path    => [ '/bin', '/usr/bin' ],
+    require => Exec['add context'],
+  }
+
+  exec { 'add entries':
+    command => "echo '${entries_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
+    unless  => "test `ldapsearch -D uid=admin,ou=system -ZZ -H ldap://${server}:${port} -w ${rootpw} -x -b dc=puppetlabs,dc=net -LLL uid=zero uid | grep uid: | wc -l` == 1",
+    path    => [ '/bin', '/usr/bin' ],
+    require => Exec['add context'],
   }
 }
