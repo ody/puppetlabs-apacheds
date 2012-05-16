@@ -109,7 +109,7 @@ class apacheds(
   # Adds the base context for our dc=puppetlabs,dc=net parition.
   exec { 'add context':
     command => "echo '${pl_context_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
-    unless  => "ldapsearch -ZZ -D uid=admin,ou=system -LLL -H ldap://${server}:${port} -x -w ${rootpw} -b dc=puppetlabs,dc=net dc=puppetlabs,dc=net",
+    onlyif  => "test `ldapsearch -ZZ -D uid=admin,ou=system -LLL -H ldap://${server}:${port} -x -w ${rootpw} -b dc=puppetlabs,dc=net dc=puppetlabs,dc=net | wc -l` = 0",
     path    => [ '/bin', '/usr/bin' ],
     require => Exec['update password'],
   }
