@@ -62,7 +62,7 @@ class apacheds(
     mode    => '0644',
     owner   => 'apacheds',
     group   => 'apacheds',
-    notify  => Service['apacheds-1.5.7-default'],
+    notify  => Service['apacheds'],
     require => Package['apacheds'],
   }
 
