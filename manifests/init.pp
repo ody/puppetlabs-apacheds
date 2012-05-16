@@ -84,7 +84,7 @@ class apacheds(
   $admin_role_ldif = template("${module_name}/admin_role_ldif.erb")
   $all_default_ldif = template("${module_name}/all_default_ldif.erb")
   $self_access_ldif = template("${module_name}/self_access_ldif.erb")
-  $dir_managers_ldif = template("${module_name}/dir_manager_ldif.erb")
+  $dir_managers_ldif = template("${module_name}/dir_managers_ldif.erb")
 
   # Now to change the default password.  Have to wait a little while for the
   # password to expire from the cache so we can do the later operations.
@@ -130,7 +130,7 @@ class apacheds(
 
   exec { 'admin subentry':
     command => "echo '${admin_role_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
-    unless  => "ldapsearch -ZZ -H ldap://${server}:${port} -D uid=admin,ou=system -w ${rootpw} -x -b dc=puppetlabs,dc=net -E subentries=true -LLL cn=puppetlabsACISubentry | grep cn:\ puppetlabsACISubentry",
+    unless  => "ldapsearch -ZZ -H ldap://${server}:${port} -D uid=admin,ou=system -w ${rootpw} -x -b dc=puppetlabs,dc=net -E subentries=true -LLL cn=puppetlabsACISubentry | grep 'cn: puppetlabsACISubentry'",
     path    => [ '/bin', '/usr/bin' ],
     require => Exec['add context'],
   }
