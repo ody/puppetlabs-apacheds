@@ -1,6 +1,15 @@
-dn: cn=puppetlabsACISubentry,dc=puppetlabs,dc=net
+dn: dc=puppetlabs,dc=net
 changetype: modify
-add: prescriptiveACI
+add: administrativeRole
+administrativeRole: accessControlSpecificArea
+
+dn: cn=puppetlabsACISubentry,dc=puppetlabs,dc=net
+changetype: add
+objectclass: top
+objectclass: subentry
+objectclass: accessControlSubentry
+cn: puppetlabsACISubentry
+subtreeSpecification: {}
 prescriptiveACI: {
     identificationTag "allDefaultACI",
     precedence 10,
