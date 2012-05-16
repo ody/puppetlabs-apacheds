@@ -83,8 +83,7 @@ class apacheds(
   $pl_context_ldif = template("${module_name}/pl_context_ldif.erb")
   $ou_ldif = template("${module_name}/ou_ldif.erb")
   $entries_ldif = template("${module_name}/entries_ldif.erb")
-  $admin_role_ldif = template("${module_name}/admin_role_ldif.erb")
-  $all_default_ldif = template("${module_name}/all_default_ldif.erb")
+  $initial_subentry_ldif = template("${module_name}/initial_subentry_ldif.erb")
   $self_access_ldif = template("${module_name}/self_access_ldif.erb")
   $dir_managers_ldif = template("${module_name}/dir_managers_ldif.erb")
 
@@ -130,18 +129,11 @@ class apacheds(
     require => Exec['add ou'],
   }
 
-  exec { 'admin subentry':
-    command => "echo '${admin_role_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
+  exec { 'intial subentry and aci':
+    command => "echo '${initial_subentry_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
     unless  => "ldapsearch -ZZ -H ldap://${server}:${port} -D uid=admin,ou=system -w ${rootpw} -x -b dc=puppetlabs,dc=net -E subentries=true -LLL cn=puppetlabsACISubentry | grep 'cn: puppetlabsACISubentry'",
     path    => [ '/bin', '/usr/bin' ],
     require => Exec['add context'],
-  }
-
-  exec { 'default aci':
-    command => "echo '${all_default_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
-    unless  => "ldapsearch -ZZ -H ldap://${server}:${port} -D uid=admin,ou=system -w ${rootpw} -x -b dc=puppetlabs,dc=net -E subentries=true -LLL cn=puppetlabsACISubentry prescriptiveACI | grep allDefaultACI",
-    path    => [ '/bin', '/usr/bin' ],
-    require => Exec['admin subentry'],
   }
 
   exec { 'self access':
