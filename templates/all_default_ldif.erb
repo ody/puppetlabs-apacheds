@@ -1,0 +1,24 @@
+dn: cn=puppetlabsACISubentry,dc=puppetlabs,dc=net
+changetype: modify
+add: prescriptiveACI
+prescriptiveACI: {
+    identificationTag "allDefaultACI",
+    precedence 10,
+    authenticationLevel none,
+    itemOrUserFirst userFirst:
+    {
+      userClasses { allUsers },
+      userPermissions
+      {
+        {
+          protectedItems { entry, allUserAttributeTypesAndValues },
+          grantsAndDenials { grantRead, grantBrowse, grantReturnDN,
+                             grantCompare, grantFilterMatch, grantDiscloseOnError }
+        },
+        {
+          protectedItems { attributeType { userPassword } },
+          grantsAndDenials { denyRead, denyCompare, denyFilterMatch }
+        }
+      }
+    }
+  }

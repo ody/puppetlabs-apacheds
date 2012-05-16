@@ -28,7 +28,7 @@
                            replicaId="1"
                            workingDirectory="example.com"
                            allowAnonymousAccess="true"
-                           accessControlEnabled="false"
+                           accessControlEnabled="true"
                            denormalizeOpAttrsEnabled="false"
                            syncPeriodMillis="15000"
                            maxPDUSize="2000000">
@@ -193,7 +193,7 @@
             maxSizeLimit="1000">
     <transports>
       <tcpTransport address="0.0.0.0" port="10389" nbThreads="8" backLog="50" enableSSL="false"/>
-      <tcpTransport address="localhost" port="10636" enableSSL="true"/>
+      <tcpTransport address="0.0.0.0" port="10636" enableSSL="true"/>
     </transports>
 
     <directoryService>#directoryService</directoryService>
