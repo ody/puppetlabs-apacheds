@@ -140,13 +140,13 @@ class apacheds(
     command => "echo '${self_access_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
     unless  => "ldapsearch -ZZ -H ldap://${server}:${port} -D uid=admin,ou=system -w ${rootpw} -x -b dc=puppetlabs,dc=net -E subentries=true -LLL cn=puppetlabsACISubentry prescriptiveACI | grep allowSelfAccessAndModification",
     path    => [ '/bin', '/usr/bin' ],
-    require => Exec['initial subentry and aci'],
+    require => Exec['intial subentry and aci'],
   }
 
   exec { 'directory managers':
     command => "echo '${dir_managers_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
     unless  => "ldapsearch -ZZ -H ldap://${server}:${port} -D uid=admin,ou=system -w ${rootpw} -x -b dc=puppetlabs,dc=net -E subentries=true -LLL cn=puppetlabsACISubentry prescriptiveACI | grep directoryManagerFullAccessACI",
     path    => [ '/bin', '/usr/bin' ],
-    require => Exec['initial subentry and aci'],
+    require => Exec['intial subentry and aci'],
   }
 }
