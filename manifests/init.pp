@@ -39,12 +39,13 @@ class apacheds(
   $rootpw = 'foobar',
   $server = 'ldap-module.vm.vmware',
   $port   = '10389',
+  $version = '2.0.0-M6'
 ) {
 
   class { 'java': distribution => 'jre' }
 
   package { 'apacheds':
-    ensure  => '1.5.7',
+    ensure  => $version,
     require => Class['java'],
   }
 
@@ -55,7 +56,7 @@ class apacheds(
   # certificates and a more thoroughly templatized config...unless it get a
   # little crazy and write something to generalize the management of xml files...
   file { 'server_config':
-    path    => '/var/lib/apacheds-1.5.7/default/conf/server.xml',
+    path    => "/var/lib/apacheds-${version}/default/conf/server.xml",
     ensure  => present,
     content => template("${module_name}/server_xml.erb"),
     mode    => '0644',
@@ -68,11 +69,12 @@ class apacheds(
   # The service exits as up before the LDAP backend it full up.  Giving it a
   # little extra time to come up...Yet another reason for a type to do the LDIF
   # modifications, clean retries.
-  service { 'apacheds-1.5.7-default':
-    ensure     => running,
-    enable     => true,
-    restart    => '/etc/init.d/apacheds-1.5.7-default restart && sleep 5',
-    require    => Package['apacheds'],
+  service { 'apacheds':
+    name    => "apacheds-${version}-default",
+    ensure  => running,
+    enable  => true,
+    restart => "/etc/init.d/apacheds-${version}-default restart && sleep 5",
+    require => Package['apacheds'],
   }
 
   # All our templates that need to be loaded into our new LDAP server.  None
@@ -93,7 +95,7 @@ class apacheds(
     command => "echo '${rootpw_ldif}' | ldapmodify -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w secret && sleep 5",
     onlyif  => "ldapsearch -ZZ -D uid=admin,ou=system -LLL -H ldap://${server}:${port} -x -w secret -b ou=system ou=system",
     path    => [ '/bin', '/usr/bin' ],
-    require => Service['apacheds-1.5.7-default'],
+    require => Service['apacheds'],
   }
 
   # Turn on specific schemas for doing posix account management.
