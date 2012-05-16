@@ -48,6 +48,8 @@ class apacheds(
     require => Class['java'],
   }
 
+  Exec { logoutput => on_failure }
+
   # Config file needs to me managed in some for or another to be able to add
   # our partition and turn on SSL.  Production module will use java_ks for
   # certificates and a more thoroughly templatized config...unless it get a
