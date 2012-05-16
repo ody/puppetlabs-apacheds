@@ -99,7 +99,7 @@ class apacheds(
   # Turn on specific schemas for doing posix account management.
   exec { 'turn on schemas':
     command => "echo '${schema_ldif}' | ldapmodify -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
-    onlyif  => "ldapsearch -ZZ -LLL -H ldap://${server}:${port} -x -b ou=schema cn=nis m-disabled | grep TRUE",
+    onlyif  => "ldapsearch -ZZ -LLL -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw} -b ou=schema cn=nis m-disabled | grep TRUE",
     path    => [ '/bin', '/usr/bin' ],
     require => Exec['update password'],
   }
@@ -115,7 +115,7 @@ class apacheds(
   # Add a set of precanned organizational units that work well for us.
   exec { 'add ou':
     command => "echo '${ou_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
-    unless  => "test `ldapsearch -D uid=admin,ou=system -ZZ -H ldap://${server}:${port} -w ${rootpw} -x -b dc=puppetlabs,dc=net -LLL '(|(ou=people)(ou=group)(ou=autofs))' ou | grep ou: | wc -l` == 3",
+    unless  => "test `ldapsearch -D uid=admin,ou=system -ZZ -H ldap://${server}:${port} -w ${rootpw} -x -b dc=puppetlabs,dc=net -LLL '(|(ou=people)(ou=group)(ou=autofs))' ou | grep ou: | wc -l` = 3",
     path    => [ '/bin', '/usr/bin' ],
     require => Exec[[ 'add context', 'turn on schemas' ] ],
   }
@@ -124,7 +124,7 @@ class apacheds(
   # new users, groups, or automounts.
   exec { 'add entries':
     command => "echo '${entries_ldif}' | ldapadd -ZZ -D uid=admin,ou=system -H ldap://${server}:${port} -x -w ${rootpw}",
-    unless  => "test `ldapsearch -D uid=admin,ou=system -ZZ -H ldap://${server}:${port} -w ${rootpw} -x -b dc=puppetlabs,dc=net -LLL uid=zero uid | grep uid: | wc -l` == 1",
+    unless  => "test `ldapsearch -D uid=admin,ou=system -ZZ -H ldap://${server}:${port} -w ${rootpw} -x -b dc=puppetlabs,dc=net -LLL uid=zero uid | grep uid: | wc -l` = 1",
     path    => [ '/bin', '/usr/bin' ],
     require => Exec[ [ 'add ou', 'turn on schemas' ] ],
   }
