@@ -54,14 +54,11 @@ class apacheds(
 
     # Master config
     class { 'apacheds::config':
-      master          => true,  # Would be default
       port            => $port,
       ssl_port        => $ssl_port,
       use_ldaps       => true,
-      jks             => 'apacheds.jks',
       jks_pw          => $jks_pw,
       partition_dn    => $parition_dn,
-      allow_hashed_pw => true,  # Would be default
       version         => $version, # Yes this sucks but I don't want to repackage it.
       require         => Package['apacheds'],
     }
@@ -75,10 +72,8 @@ class apacheds(
       port            => $port,
       ssl_port        => $ssl_port,
       use_ldaps       => true,
-      jks             => 'apacheds.jks',
       partition_dn    => $parition_dn,
       allow_hashed_pw => true,
-      version         => $version, # Yes this sucks but I don't want to repackage it.
       require         => Package['apacheds'],
     }
   }
