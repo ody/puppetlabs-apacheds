@@ -13,9 +13,7 @@ class service::ldap::master(
   Ads_entry {
     admin_dn         => $admin_dn,
     admin_pw         => $admin_pw,
-    admin_default_pw => $admin_default_pw,
     server           => $server,
-    port             => $port,
   }
 
   ads_entry { 'uid=admin,ou=system':

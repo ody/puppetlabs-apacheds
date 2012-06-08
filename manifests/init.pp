@@ -1,6 +1,4 @@
-# What I want the interface to this module to actually look like.
 class apacheds(
-  $rootpw      = hiera('apacheds::rootpw'),
   $master_host = hiera('apacheds::master_host'),
   $port        = '10389',
   $ssl_port    = '10636',
@@ -15,7 +13,7 @@ class apacheds(
   package { 'apacheds':
     ensure  => $version,
     before  => File['/etc/apacheds'],
-    require => Class['java'],
+    require => [ Class['java'], Class['apacheds::config'] ],
   }
 
   File { mode => '0644', owner => 'apacheds', group => 'root', }
@@ -30,37 +28,45 @@ class apacheds(
     before => Java_ks[$::fqdn],
   }
 
-  java_ks { 'ca':
+  file { "/etc/apacheds/certs/${::fqdn}.pem":
+    source => "puppet:///modules/ssldata/${fqdn}_ldap.pem",
+  }
+
+  file { "/etc/apacheds/certs/${::fqdn}.key":
+    source => "puppet:///modules/ssldata/${fqdn}_ldap.key",
+  }
+
+  file { '/etc/apacheds/certs/ca.pem':
+    source => 'puppet:///modules/ssldata/ca.pem',
+  }
+
+  java_ks { $::fqdn:
     ensure      => latest,
     password    => $jks_pw,
     certificate => "/etc/apacheds/certs/${::fqdn}.pem",
     pirvate_key => "/etc/apacheds/certs/${::fqdn}.key",
-    target      => "/var/lib/${version}/default/apacheds.jks",
-    before      => Class['apacheds::config'],
-    require     => Package['apacheds'],
+    target      => "/var/lib/apacheds-${version}/default/apacheds.jks",
   }
 
-  java_ks { $::fqdn:
+  java_ks { 'ca':
     ensure       => latest,
     password     => $jks_pw,
     certificate  => '/etc/apacheds/certs/ca.pem',
-    target       => "/var/lib/${version}/default/apacheds.jks",
+    target       => "/var/lib/apacheds-${version}/default/apacheds.jks",
     trustcacerts => true,
-    before       => Class['apacheds::config'],
-    require      => Package['apacheds'],
   }
 
   if $master {
 
     # Master config
     class { 'apacheds::config':
+      master_host     => $master_host,
       port            => $port,
       ssl_port        => $ssl_port,
       use_ldaps       => true,
       jks_pw          => $jks_pw,
       partition_dn    => $parition_dn,
       version         => $version, # Yes this sucks but I don't want to repackage it.
-      require         => Package['apacheds'],
     }
 
   } else {
@@ -71,10 +77,8 @@ class apacheds(
       master_host     => $master_host,
       port            => $port,
       ssl_port        => $ssl_port,
-      use_ldaps       => true,
       partition_dn    => $parition_dn,
-      allow_hashed_pw => true,
-      require         => Package['apacheds'],
+      version         => $version
     }
   }
 
@@ -82,6 +86,6 @@ class apacheds(
     name      => "apacheds-${version}-default",
     ensure    => running,
     enable    => true,
-    subscribe => [ Package['apacheds'], Class['apacheds::config'], ],
+    subscribe => [ Package['apacheds'], Java_ks[['ca', $::fqdn]] ],
   }
 }
