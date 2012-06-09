@@ -3,7 +3,9 @@ class apacheds(
   $port        = '10389',
   $ssl_port    = '10636',
   $parition_dn = hiera('apacheds::partition_dn'),
-  $jks_pw      = hiera('apacheds::jks_pw'),
+  $jks         = '',
+  $jks_pw      = '',
+  $replica_id  = '1',
   $version,
   $master
 ) {
@@ -12,7 +14,6 @@ class apacheds(
 
   package { 'apacheds':
     ensure  => $version,
-    before  => File['/etc/apacheds'],
     require => [ Class['java'], Class['apacheds::config'] ],
   }
 

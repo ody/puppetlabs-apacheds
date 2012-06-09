@@ -1,12 +1,13 @@
 class apacheds::config(
+  $jks             = '',
+  $jks_pw          = '',
   $master          = true,
-  $master_host,
   $port            = '10389',
   $ssl_port        = '10636',
   $use_ldaps       = true,
-  $jks             = 'apacheds.jks',
-  $parition_dn,
   $allow_hashed_pw = true,
+  $master_host,
+  $parition_dn,
   $version,
 ) {
 
@@ -15,7 +16,7 @@ class apacheds::config(
 
   $partition_name = regsubst($partition_dn, '^dc=(.*?)(\W.*)', '\1')
 
-  File { mode => '0640', owner => 'apacheds', group => 'apacheds' }
+  File { mode => '0644', owner => 'apacheds', group => 'root', }
 
   if str2bool(inline_template("<%= ${version} < '2.0' -%>")) {
     validate_bool($master, '^true$', 'ApacheDS versions earlier than 2.0.0 did not support replication so your only option is a master ldap server')
